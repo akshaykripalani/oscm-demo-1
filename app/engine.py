@@ -8,6 +8,7 @@ from .models import (
     StageRole,
     StageSnapshot,
     StepResult,
+    WeekRecord,
 )
 
 
@@ -40,6 +41,18 @@ class StageState:
         self.cumulative_holding_cost = 0.0
         self.cumulative_stockout_cost = 0.0
         self.agent = GeminiStageAgent(role, config)
+
+        self.history: list[WeekRecord] = [
+            WeekRecord(
+                week=0,
+                stock=self.stock,
+                backlog=self.backlog,
+                order_placed=self.last_order_placed,
+                holding_cost=self.last_holding_cost,
+                stockout_cost=self.last_stockout_cost,
+                cumulative_cost=0.0,
+            )
+        ]
 
     def build_recap(self) -> str | None:
         if self.last_order_placed is None:
@@ -80,6 +93,7 @@ class SimulationEngine:
             holding_cost_per_unit=self.config.holding_cost_per_unit,
             stockout_cost_per_unit=self.config.stockout_cost_per_unit,
             stages={role: state.snapshot() for role, state in self.stages.items()},
+            history={role: state.history for role, state in self.stages.items()},
         )
 
     async def step(self) -> StepResult:
@@ -132,6 +146,19 @@ class SimulationEngine:
             )
             stage.cumulative_holding_cost += stage.last_holding_cost
             stage.cumulative_stockout_cost += stage.last_stockout_cost
+
+            stage.history.append(
+                WeekRecord(
+                    week=week,
+                    stock=stage.stock,
+                    backlog=stage.backlog,
+                    order_placed=stage.last_order_placed,
+                    holding_cost=stage.last_holding_cost,
+                    stockout_cost=stage.last_stockout_cost,
+                    cumulative_cost=stage.cumulative_holding_cost
+                    + stage.cumulative_stockout_cost,
+                )
+            )
 
         self.current_week = week
         return self.snapshot()

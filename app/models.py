@@ -68,6 +68,16 @@ class StageSnapshot(BaseModel):
     reasoning: str | None
 
 
+class WeekRecord(BaseModel):
+    week: int
+    stock: int
+    backlog: int
+    order_placed: int
+    holding_cost: float
+    stockout_cost: float
+    cumulative_cost: float
+
+
 class StepResult(BaseModel):
     week: int
     total_weeks: int
@@ -75,3 +85,4 @@ class StepResult(BaseModel):
     holding_cost_per_unit: float
     stockout_cost_per_unit: float
     stages: dict[StageRole, StageSnapshot]
+    history: dict[StageRole, list[WeekRecord]]

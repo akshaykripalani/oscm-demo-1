@@ -1,9 +1,13 @@
+import csv
+import io
+
 from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
 from .csv_parser import CsvParseError, build_default_config, parse_csv
 from .engine import SimulationComplete
-from .models import StepResult
+from .models import StageRole, StepResult
 from .state_store import store
 
 app = FastAPI(title="Beer Distribution Game Simulator")
@@ -51,6 +55,45 @@ async def reset():
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     return engine.snapshot()
+
+
+@app.get("/api/history/{role}/csv")
+async def history_csv(role: StageRole):
+    if store.engine is None:
+        raise HTTPException(status_code=400, detail="No simulation loaded yet. Upload a CSV first.")
+
+    history = store.engine.stages[role].history
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(
+        [
+            "week",
+            "stock",
+            "backlog",
+            "order_placed",
+            "holding_cost",
+            "stockout_cost",
+            "cumulative_cost",
+        ]
+    )
+    for r in history:
+        writer.writerow(
+            [
+                r.week,
+                r.stock,
+                r.backlog,
+                r.order_placed,
+                r.holding_cost,
+                r.stockout_cost,
+                r.cumulative_cost,
+            ]
+        )
+
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={role.value}_history.csv"},
+    )
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
