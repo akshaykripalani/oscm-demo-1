@@ -11,14 +11,14 @@ class CsvParseError(ValueError):
 
 DEFAULT_DEMAND_CSV = (
     "weeks," + ",".join(str(i) for i in range(1, 36)) + "\n"
-    "demand," + ",".join(["7"] * 5 + ["14"] * 30) + "\n"
+    "demand," + ",".join(["7"] * 3 + ["14"] * 32) + "\n"
     "ICH,1\n"
     "ICO,2\n"
 ).encode("utf-8")
 
 
 def build_default_config() -> SimulationConfig:
-    """35 weeks, demand=7 for weeks 1-5 then 14 for weeks 6-35, ICH=1, ICO=2 --
+    """35 weeks, demand=7 for weeks 1-3 then 14 for weeks 4-35, ICH=1, ICO=2 --
     used when no CSV is uploaded."""
     return parse_csv(DEFAULT_DEMAND_CSV)
 
