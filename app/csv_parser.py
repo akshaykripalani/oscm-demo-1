@@ -102,4 +102,5 @@ def parse_csv(file_bytes: bytes) -> SimulationConfig:
         lead_time_weeks=settings.lead_time_weeks,
         initial_stock=settings.initial_stock,
         initial_backlog=settings.initial_backlog,
+        initial_order_placed=settings.initial_order_placed,
     )

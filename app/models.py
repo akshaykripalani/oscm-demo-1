@@ -46,6 +46,10 @@ class SimulationConfig(BaseModel):
     lead_time_weeks: int = 2
     initial_stock: int = 0
     initial_backlog: int = 0
+    # Units "already ordered" one week before week 1 -- if None, defaults to
+    # the first week's demand (i.e. everyone was already in a steady state
+    # matching that demand before the simulation starts).
+    initial_order_placed: int | None = None
 
 
 class OrderDecision(BaseModel):

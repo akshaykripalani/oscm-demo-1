@@ -20,11 +20,23 @@ class StageState:
         self.role = role
         self.stock = config.initial_stock
         self.backlog = config.initial_backlog
-        self.pipeline: deque[int] = deque([0] * config.lead_time_weeks)
-        self.last_order_placed: int | None = None
+
+        # Everyone is assumed to have already placed one order, one week
+        # before week 1 -- so only the nearest pipeline slot is pre-filled
+        # (it'll arrive in week 1); any further-out slots start empty since
+        # no earlier order was placed.
+        prior_order = (
+            config.initial_order_placed
+            if config.initial_order_placed is not None
+            else config.customer_demand[0]
+        )
+        self.pipeline: deque[int] = deque(
+            [prior_order] + [0] * (config.lead_time_weeks - 1)
+        )
+        self.last_order_placed: int | None = prior_order
         self.last_reasoning: str | None = None
-        self.last_holding_cost = 0.0
-        self.last_stockout_cost = 0.0
+        self.last_holding_cost = config.holding_cost_per_unit * self.stock
+        self.last_stockout_cost = config.stockout_cost_per_unit * self.backlog
         self.cumulative_holding_cost = 0.0
         self.cumulative_stockout_cost = 0.0
         self.agent = GeminiStageAgent(role, config)
