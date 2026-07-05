@@ -1,8 +1,12 @@
+import logging
+
 from google import genai
 from google.genai import types
 
 from .config import settings
 from .models import OrderDecision, STAGE_DISPLAY_NAME, SimulationConfig, StageRole
+
+logger = logging.getLogger(__name__)
 
 DOWNSTREAM_DESCRIPTION: dict[StageRole, str] = {
     StageRole.RETAILER: "the number of units end customers demanded",
@@ -155,24 +159,33 @@ class GeminiStageAgent:
             last_outcome=last_outcome,
             in_transit=in_transit,
         )
-        decision = await self._try_send(prompt)
+        decision, reason = await self._try_send(prompt)
         if decision is not None:
             return decision
 
-        decision = await self._try_send(_RETRY_MESSAGE)
+        decision, reason = await self._try_send(_RETRY_MESSAGE)
         if decision is not None:
             return decision
 
         return OrderDecision(
-            order_quantity=downstream_qty, reasoning="[fallback: parse failure]"
+            order_quantity=downstream_qty, reasoning=f"[fallback: {reason}]"
         )
 
-    async def _try_send(self, message: str) -> OrderDecision | None:
+    async def _try_send(self, message: str) -> tuple[OrderDecision | None, str]:
         try:
             response = await self._chat.send_message(message)
-        except Exception:
-            return None
+        except Exception as e:
+            logger.exception("Gemini call failed for role=%s", self.role.value)
+            text = str(e)
+            if "RESOURCE_EXHAUSTED" in text or "429" in text:
+                return None, "Gemini API quota exceeded"
+            return None, f"Gemini API error ({type(e).__name__})"
         parsed = getattr(response, "parsed", None)
         if isinstance(parsed, OrderDecision) and parsed.order_quantity >= 0:
-            return parsed
-        return None
+            return parsed, ""
+        logger.warning(
+            "Gemini response for role=%s failed schema validation: %r",
+            self.role.value,
+            response,
+        )
+        return None, "invalid response schema"
