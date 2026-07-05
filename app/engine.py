@@ -17,42 +17,78 @@ class SimulationComplete(Exception):
 
 
 class StageState:
-    def __init__(self, role: StageRole, config: SimulationConfig):
+    def __init__(
+        self,
+        role: StageRole,
+        config: SimulationConfig,
+        restore: dict | None = None,
+    ):
         self.role = role
-        self.stock = config.initial_stock
-        self.backlog = config.initial_backlog
 
-        # Everyone is assumed to have already placed one order, one week
-        # before week 1 -- so only the nearest pipeline slot is pre-filled
-        # (it'll arrive in week 1); any further-out slots start empty since
-        # no earlier order was placed.
-        prior_order = (
-            config.initial_order_placed
-            if config.initial_order_placed is not None
-            else config.customer_demand[0]
-        )
-        self.pipeline: deque[int] = deque(
-            [prior_order] + [0] * (config.lead_time_weeks - 1)
-        )
-        self.last_order_placed: int | None = prior_order
-        self.last_reasoning: str | None = None
-        self.last_holding_cost = config.holding_cost_per_unit * self.stock
-        self.last_stockout_cost = config.stockout_cost_per_unit * self.backlog
-        self.cumulative_holding_cost = 0.0
-        self.cumulative_stockout_cost = 0.0
+        if restore is None:
+            self.stock = config.initial_stock
+            self.backlog = config.initial_backlog
+
+            # Everyone is assumed to have already placed one order, one week
+            # before week 1 -- so only the nearest pipeline slot is pre-filled
+            # (it'll arrive in week 1); any further-out slots start empty
+            # since no earlier order was placed.
+            prior_order = (
+                config.initial_order_placed
+                if config.initial_order_placed is not None
+                else config.customer_demand[0]
+            )
+            self.pipeline: deque[int] = deque(
+                [prior_order] + [0] * (config.lead_time_weeks - 1)
+            )
+            self.last_order_placed: int | None = prior_order
+            self.last_reasoning: str | None = None
+            self.last_holding_cost = config.holding_cost_per_unit * self.stock
+            self.last_stockout_cost = config.stockout_cost_per_unit * self.backlog
+            self.cumulative_holding_cost = 0.0
+            self.cumulative_stockout_cost = 0.0
+            self.history: list[WeekRecord] = [
+                WeekRecord(
+                    week=0,
+                    stock=self.stock,
+                    backlog=self.backlog,
+                    order_placed=self.last_order_placed,
+                    holding_cost=self.last_holding_cost,
+                    stockout_cost=self.last_stockout_cost,
+                    cumulative_cost=0.0,
+                )
+            ]
+        else:
+            self.stock = restore["stock"]
+            self.backlog = restore["backlog"]
+            self.pipeline = deque(restore["pipeline"])
+            self.last_order_placed = restore["last_order_placed"]
+            self.last_reasoning = restore["last_reasoning"]
+            self.last_holding_cost = restore["last_holding_cost"]
+            self.last_stockout_cost = restore["last_stockout_cost"]
+            self.cumulative_holding_cost = restore["cumulative_holding_cost"]
+            self.cumulative_stockout_cost = restore["cumulative_stockout_cost"]
+            self.history = [WeekRecord(**r) for r in restore["history"]]
+
+        # Always a fresh chat session -- the agent's raw conversation memory
+        # doesn't survive a restart, but build_recap() below feeds it the
+        # true stock/backlog/cost facts each turn regardless, so its
+        # decisions stay coherent even without the literal past turns.
         self.agent = GeminiStageAgent(role, config)
 
-        self.history: list[WeekRecord] = [
-            WeekRecord(
-                week=0,
-                stock=self.stock,
-                backlog=self.backlog,
-                order_placed=self.last_order_placed,
-                holding_cost=self.last_holding_cost,
-                stockout_cost=self.last_stockout_cost,
-                cumulative_cost=0.0,
-            )
-        ]
+    def to_persisted_dict(self) -> dict:
+        return {
+            "stock": self.stock,
+            "backlog": self.backlog,
+            "pipeline": list(self.pipeline),
+            "last_order_placed": self.last_order_placed,
+            "last_reasoning": self.last_reasoning,
+            "last_holding_cost": self.last_holding_cost,
+            "last_stockout_cost": self.last_stockout_cost,
+            "cumulative_holding_cost": self.cumulative_holding_cost,
+            "cumulative_stockout_cost": self.cumulative_stockout_cost,
+            "history": [r.model_dump() for r in self.history],
+        }
 
     def build_recap(self) -> str | None:
         if self.last_order_placed is None:
@@ -78,12 +114,25 @@ class StageState:
 
 
 class SimulationEngine:
-    def __init__(self, config: SimulationConfig):
+    def __init__(
+        self,
+        config: SimulationConfig,
+        restore_stages: dict | None = None,
+        current_week: int = 0,
+    ):
         self.config = config
-        self.current_week = 0
+        self.current_week = current_week
         self.stages: dict[StageRole, StageState] = {
-            role: StageState(role, config) for role in StageRole
+            role: StageState(
+                role,
+                config,
+                restore=None if restore_stages is None else restore_stages[role.value],
+            )
+            for role in StageRole
         }
+
+    def to_persisted_stages(self) -> dict:
+        return {role.value: state.to_persisted_dict() for role, state in self.stages.items()}
 
     def snapshot(self) -> StepResult:
         return StepResult(

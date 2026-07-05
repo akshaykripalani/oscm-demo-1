@@ -1,5 +1,6 @@
 import csv
 import io
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import Response
@@ -10,7 +11,14 @@ from .engine import SimulationComplete
 from .models import StageRole, StepResult
 from .state_store import store
 
-app = FastAPI(title="Beer Distribution Game Simulator")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    store.restore_from_db()
+    yield
+
+
+app = FastAPI(title="Beer Distribution Game Simulator", lifespan=lifespan)
 
 
 @app.post("/api/upload-csv", response_model=StepResult)
@@ -36,9 +44,11 @@ async def step():
     if store.engine is None:
         raise HTTPException(status_code=400, detail="No simulation loaded yet. Upload a CSV first.")
     try:
-        return await store.engine.step()
+        result = await store.engine.step()
     except SimulationComplete as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+    store.persist_current()
+    return result
 
 
 @app.get("/api/state", response_model=StepResult)

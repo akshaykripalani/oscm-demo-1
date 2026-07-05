@@ -11,3 +11,6 @@ wheels/
 
 # Secrets
 .env
+
+# Local simulation state (runtime data, not source)
+data/simulation.db
