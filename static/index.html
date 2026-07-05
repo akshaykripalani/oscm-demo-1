@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beer Distribution Game -- AI Agent Simulator</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Beer Distribution Game</h1>
+    <p class="subtitle">Four independent AI agents. No communication. One number of visibility each.</p>
+  </header>
+
+  <section class="controls">
+    <div class="control-group">
+      <label for="csv-input">Demand CSV</label>
+      <span class="info-icon" tabindex="0" aria-label="CSV format help">
+        &#9432;
+        <span class="tooltip">
+          <strong>CSV format</strong> (row labels, case-insensitive):
+          <pre>weeks,1,2,...,N
+demand,&lt;N values&gt;
+ICH,&lt;holding cost per unit per week&gt;
+ICO,&lt;stockout cost per unit per week&gt;</pre>
+          ICH and ICO must each have exactly one value.
+        </span>
+      </span>
+      <input type="file" id="csv-input" accept=".csv" />
+      <button id="upload-btn">Upload &amp; Start</button>
+      <button id="default-btn">Use default demand (no CSV)</button>
+    </div>
+    <div class="control-group">
+      <span id="week-counter">No simulation loaded</span>
+      <button id="step-btn" disabled>Step forward one week</button>
+      <button id="reset-btn" disabled>Reset</button>
+    </div>
+  </section>
+
+  <p id="error-banner" class="error hidden"></p>
+  <p id="done-banner" class="done hidden">Simulation complete -- all 35 weeks played out.</p>
+
+  <section class="chain">
+    <div class="stage-card" data-role="supplier">
+      <h2>Supplier</h2>
+      <dl>
+        <dt>Current stock</dt><dd class="stat-stock">--</dd>
+        <dt>Order placed upstream</dt><dd class="stat-order">--</dd>
+        <dt>Cumulative cost</dt><dd class="stat-cost">--</dd>
+      </dl>
+      <p class="reasoning">--</p>
+    </div>
+    <div class="stage-card" data-role="manufacturer">
+      <h2>Manufacturer</h2>
+      <dl>
+        <dt>Current stock</dt><dd class="stat-stock">--</dd>
+        <dt>Order placed upstream</dt><dd class="stat-order">--</dd>
+        <dt>Cumulative cost</dt><dd class="stat-cost">--</dd>
+      </dl>
+      <p class="reasoning">--</p>
+    </div>
+    <div class="stage-card" data-role="distributor">
+      <h2>Distributor</h2>
+      <dl>
+        <dt>Current stock</dt><dd class="stat-stock">--</dd>
+        <dt>Order placed upstream</dt><dd class="stat-order">--</dd>
+        <dt>Cumulative cost</dt><dd class="stat-cost">--</dd>
+      </dl>
+      <p class="reasoning">--</p>
+    </div>
+    <div class="stage-card" data-role="retailer">
+      <h2>Retailer</h2>
+      <dl>
+        <dt>Current stock</dt><dd class="stat-stock">--</dd>
+        <dt>Order placed upstream</dt><dd class="stat-order">--</dd>
+        <dt>Cumulative cost</dt><dd class="stat-cost">--</dd>
+      </dl>
+      <p class="reasoning">--</p>
+    </div>
+  </section>
+
+  <script src="/app.js"></script>
+</body>
+</html>
