@@ -103,6 +103,17 @@ button:disabled {
   color: var(--text-primary);
 }
 
+#simulate-all-btn.running {
+  background: var(--status-critical);
+  font-variant-numeric: tabular-nums;
+}
+
+#simulate-all-btn.running:disabled {
+  background: var(--status-critical);
+  color: #fff;
+  opacity: 0.7;
+}
+
 input[type="file"] {
   color: var(--text-secondary);
 }
@@ -200,6 +211,22 @@ input[type="file"] {
 .stage-card[data-role="distributor"]  { --accent: var(--stage-distributor); }
 .stage-card[data-role="retailer"]     { --accent: var(--stage-retailer); }
 
+/* Charts always render in light mode regardless of system theme -- pin the
+   tokens locally so this subtree ignores the dark-mode :root overrides. */
+.chart-card {
+  --surface-1:      #fcfcfb;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --border-hairline: rgba(11, 11, 11, 0.10);
+  --gridline:       #e1e0d9;
+
+  --stage-supplier:     #2a78d6;
+  --stage-manufacturer: #1baf7a;
+  --stage-distributor:  #4a3aa7;
+  --stage-retailer:     #eb6834;
+}
+
 .stage-card h2 {
   margin: 0 0 12px;
   font-size: 1.05rem;
@@ -233,4 +260,142 @@ input[type="file"] {
   color: var(--text-secondary);
   font-size: 0.85rem;
   min-height: 2.6em;
+}
+
+.charts {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chart-block h3 {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.chart-block > div {
+  position: relative;
+}
+
+.mini-chart {
+  display: block;
+  overflow: visible;
+}
+
+.chart-gridline {
+  stroke: var(--gridline);
+  stroke-width: 1;
+}
+
+.chart-axis-label {
+  fill: var(--text-muted);
+  font-size: 8px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.chart-axis-label-y {
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+
+.chart-axis-label-x {
+  text-anchor: middle;
+}
+
+.chart-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-enddot {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+
+.chart-crosshair {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.chart-legend-swatch {
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  display: inline-block;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 2px;
+  z-index: 5;
+  background: var(--text-primary);
+  color: var(--surface-1);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.chart-tooltip-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.chart-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-tooltip-key {
+  width: 8px;
+  height: 2px;
+  display: inline-block;
+  border-radius: 1px;
+}
+
+.chart-tooltip-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-tooltip-name {
+  color: var(--surface-1);
+  opacity: 0.8;
+}
+
+.download-csv {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.download-csv:hover {
+  color: var(--text-primary);
 }

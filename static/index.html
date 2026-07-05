@@ -33,6 +33,7 @@ ICO,&lt;stockout cost per unit per week&gt;</pre>
     <div class="control-group">
       <span id="week-counter">No simulation loaded</span>
       <button id="step-btn" disabled>Step forward one week</button>
+      <button id="simulate-all-btn" disabled>Simulate all 35 weeks</button>
       <button id="reset-btn" disabled>Reset</button>
     </div>
   </section>
@@ -76,6 +77,95 @@ ICO,&lt;stockout cost per unit per week&gt;</pre>
         <dt>Cumulative cost</dt><dd class="stat-cost">--</dd>
       </dl>
       <p class="reasoning">--</p>
+    </div>
+
+    <div class="stage-card chart-card" data-role="supplier">
+      <h2>Supplier</h2>
+      <div class="charts">
+        <div class="chart-block">
+          <h3>Inventory</h3>
+          <div class="chart-inventory"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Cost per week</h3>
+          <div class="chart-cost"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Orders placed</h3>
+          <div class="chart-orders"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Backlog</h3>
+          <div class="chart-backlog"></div>
+        </div>
+      </div>
+      <a class="download-csv" href="/api/history/supplier/csv" download>Download CSV</a>
+    </div>
+    <div class="stage-card chart-card" data-role="manufacturer">
+      <h2>Manufacturer</h2>
+      <div class="charts">
+        <div class="chart-block">
+          <h3>Inventory</h3>
+          <div class="chart-inventory"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Cost per week</h3>
+          <div class="chart-cost"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Orders placed</h3>
+          <div class="chart-orders"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Backlog</h3>
+          <div class="chart-backlog"></div>
+        </div>
+      </div>
+      <a class="download-csv" href="/api/history/manufacturer/csv" download>Download CSV</a>
+    </div>
+    <div class="stage-card chart-card" data-role="distributor">
+      <h2>Distributor</h2>
+      <div class="charts">
+        <div class="chart-block">
+          <h3>Inventory</h3>
+          <div class="chart-inventory"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Cost per week</h3>
+          <div class="chart-cost"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Orders placed</h3>
+          <div class="chart-orders"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Backlog</h3>
+          <div class="chart-backlog"></div>
+        </div>
+      </div>
+      <a class="download-csv" href="/api/history/distributor/csv" download>Download CSV</a>
+    </div>
+    <div class="stage-card chart-card" data-role="retailer">
+      <h2>Retailer</h2>
+      <div class="charts">
+        <div class="chart-block">
+          <h3>Inventory</h3>
+          <div class="chart-inventory"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Cost per week</h3>
+          <div class="chart-cost"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Orders placed</h3>
+          <div class="chart-orders"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Backlog</h3>
+          <div class="chart-backlog"></div>
+        </div>
+      </div>
+      <a class="download-csv" href="/api/history/retailer/csv" download>Download CSV</a>
     </div>
   </section>
 
