@@ -95,6 +95,7 @@ class SimulationEngine:
 
             arrived = stage.pipeline.popleft()
             stage.stock += arrived
+            in_transit = list(stage.pipeline)
 
             if role is StageRole.RETAILER:
                 downstream_qty = self.config.customer_demand[week - 1]
@@ -110,6 +111,7 @@ class SimulationEngine:
                 backlog=stage.backlog,
                 downstream_qty=downstream_qty,
                 last_outcome=recap,
+                in_transit=in_transit,
             )
             stage.last_order_placed = decision.order_quantity
             stage.last_reasoning = decision.reasoning

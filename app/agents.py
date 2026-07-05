@@ -55,8 +55,10 @@ def build_system_instruction(role: StageRole, config: SimulationConfig) -> str:
         "Unmet demand carries forward until fulfilled, accruing this cost every "
         "week it remains open.\n\n"
         "Every week you will be given your current on-hand stock, your current "
-        "backlog, the single downstream number you're allowed to observe, and a "
-        "recap of what happened last week. Respond ONLY with the required "
+        "backlog, the single downstream number you're allowed to observe, how "
+        "many units you already have in transit from earlier orders (and in how "
+        "many weeks each shipment will arrive), and a recap of what happened "
+        "last week. Respond ONLY with the required "
         "structured JSON output: an `order_quantity` (a non-negative integer) "
         "and a short `reasoning` string (1-2 sentences) explaining your decision."
     )
@@ -71,6 +73,7 @@ def build_turn_prompt(
     backlog: int,
     downstream_qty: int,
     last_outcome: str | None,
+    in_transit: list[int],
 ) -> str:
     downstream_desc = DOWNSTREAM_DESCRIPTION[role]
     lines = [
@@ -80,6 +83,16 @@ def build_turn_prompt(
         f"Your current backlog (unmet demand still owed downstream): {backlog} units.",
         f"{downstream_desc.capitalize()} this week: {downstream_qty} units.",
     ]
+    if in_transit:
+        transit_desc = "; ".join(
+            f"{qty} units arriving in {weeks_out} week{'s' if weeks_out != 1 else ''}"
+            for weeks_out, qty in enumerate(in_transit, start=1)
+        )
+        lines.append(
+            f"Units already ordered and in transit (not yet arrived): {transit_desc}."
+        )
+    else:
+        lines.append("You have no units currently in transit.")
     if last_outcome:
         lines.append(last_outcome)
     else:
@@ -130,6 +143,7 @@ class GeminiStageAgent:
         backlog: int,
         downstream_qty: int,
         last_outcome: str | None,
+        in_transit: list[int],
     ) -> OrderDecision:
         prompt = build_turn_prompt(
             self.role,
@@ -139,6 +153,7 @@ class GeminiStageAgent:
             backlog=backlog,
             downstream_qty=downstream_qty,
             last_outcome=last_outcome,
+            in_transit=in_transit,
         )
         decision = await self._try_send(prompt)
         if decision is not None:
